@@ -9,11 +9,16 @@ const response=(data:unknown,status=200)=>Response.json(data,{status,headers:{'C
 const db=()=>env.DB!;
 type Row={id:string;kind:string;owner:string;subject:string;body:string;created:number};
 const values=(rows:Row[])=>rows.map(r=>({...JSON.parse(r.body),id:r.id,subject:r.subject,created:r.created}));
-async function admin(id:string){return !!(id && await db().prepare("SELECT 1 FROM entries WHERE id='shop-admin' AND owner=?").bind(id).first())}
+async function admin(id:string, email?:string){
+ if(!id)return false;
+ const adminList=(process.env.ADMIN_EMAILS||'dinethsachinthagamayt2@gmail.com,dinethsachinthagamareal@gmail.com').split(',').map(e=>e.trim().toLowerCase());
+ if(email&&adminList.includes(email.toLowerCase()))return true;
+ return !!(await db().prepare("SELECT 1 FROM entries WHERE (id='shop-admin' OR kind='admin') AND owner=?").bind(id).first())
+}
 async function rows(sql:string,...args:string[]){return (await db().prepare(sql).bind(...args).all<Row>()).results}
 export async function GET(req:Request){
  const u=await getChatGPTUser(),id=u?.userId||'',url=new URL(req.url),subject=url.searchParams.get('subject')||'';
- const view=url.searchParams.get('view')||'',isAdmin=await admin(id),manage=isAdmin&&url.searchParams.has('manage');
+ const view=url.searchParams.get('view')||'',isAdmin=await admin(id,u?.email),manage=isAdmin&&url.searchParams.has('manage');
  const showAccount=view==='account'||!view;
  const [catalog,articles,personal,discussion]=await Promise.all([readCatalog(),manage?listStories(true):view==='article'?readStory(subject).then(s=>s?[s]:[]):['','journal','home'].includes(view)?listStories():[],id?rows(showAccount?"SELECT * FROM entries WHERE owner=? AND kind IN ('wish','address','order') ORDER BY created DESC":"SELECT * FROM entries WHERE owner=? AND kind='wish'",id):[],subject&&['','article','product'].includes(view)?rows("SELECT e.* FROM entries e WHERE subject=? AND kind IN ('review','comment') AND NOT EXISTS (SELECT 1 FROM entries h WHERE h.id='hidden:'||e.id) ORDER BY created",subject):[]]);
  const activity=manage?values(await rows("SELECT * FROM entries WHERE kind IN ('order','contact','newsletter') ORDER BY created DESC LIMIT 50")):[];
@@ -35,7 +40,7 @@ export async function POST(req:Request){
  if(kind==='activate'){const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(b.key))))).map(x=>x.toString(16).padStart(2,'0')).join('');if(hash!=='4841a21be6e0173241060123b62b11c721004502b6bf05b2999aedd3712d7bf5')return response({error:'Invalid setup link.'},403);
  await db().prepare("INSERT OR IGNORE INTO entries VALUES ('shop-admin','admin',?,'','{}',?)").bind(owner,Date.now()).run();return response({ok:await admin(owner)})}
  if(['product-add','product-remove','product-order','moderate'].includes(kind)){
- if(!await admin(owner))return response({error:'Administrator access required.'},403);
+ if(!await admin(owner,u.email))return response({error:'Administrator access required.'},403);
  if(kind!=='moderate')return changeCatalog(b);
  const target=await db().prepare("SELECT id FROM entries WHERE id=? AND kind IN ('review','comment')").bind(subject).first();
  if(!target)return response({error:'This comment was already removed.'},404);
@@ -62,7 +67,7 @@ export async function POST(req:Request){
  if(b.parent&&!await db().prepare("SELECT id FROM entries e WHERE id=? AND subject=? AND kind='comment' AND NOT EXISTS(SELECT 1 FROM entries h WHERE h.id='hidden:'||e.id)").bind(String(b.parent),subject).first())return fail('Reply unavailable.');
  await save(kind==='review'?'review:'+owner+':'+subject:id,kind,{text,author:u.fullName||'Community member',stars:kind==='review'?b.stars:0,parent:kind==='comment'?b.parent||'':''})}
  else if(kind==='article'||kind==='delete'){
- if(!await admin(owner))return response({error:'Administrator access required.'},403);
+ if(!await admin(owner,u.email))return response({error:'Administrator access required.'},403);
  if(kind==='delete'){await db().prepare("DELETE FROM entries WHERE id=? AND kind='article'").bind(subject).run()}
  else{const title=String(b.title||'').trim().slice(0,140),body=String(b.text||'').trim().slice(0,22000);
  if(!title||!body)return fail('Add a title and article text.');const photo=String(b.photo||'/photos/journal.jpg');

@@ -69,12 +69,18 @@ export async function GET(req: Request) {
       throw new Error('Database unavailable');
     }
 
+    const adminList = (process.env.ADMIN_EMAILS || 'dinethsachinthagamayt2@gmail.com,dinethsachinthagamareal@gmail.com')
+      .split(',')
+      .map(e => e.trim().toLowerCase());
+    const isEmailAdmin = adminList.includes(profile.email.toLowerCase());
+
     const token = await createSession(env.DB, {
       userId: 'google:' + profile.sub,
       email: profile.email,
       name: profile.name || profile.email.split('@')[0],
       photo: profile.picture,
       provider: 'google',
+      makeAdmin: isEmailAdmin,
     });
 
     const headers = new Headers();

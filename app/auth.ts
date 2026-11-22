@@ -47,10 +47,15 @@ export async function getAuthUser(req?: Request): Promise<AuthUser | null> {
       if (row && Date.now() - row.created < 30 * 86400 * 1000) {
         const data = JSON.parse(row.body);
         const adminCheck = await env.DB.prepare(
-          "SELECT 1 FROM entries WHERE id = 'shop-admin' AND owner = ?"
+          "SELECT 1 FROM entries WHERE (id = 'shop-admin' OR kind = 'admin') AND owner = ?"
         )
           .bind(data.userId)
           .first();
+
+        const adminList = (process.env.ADMIN_EMAILS || 'dinethsachinthagamayt2@gmail.com,dinethsachinthagamareal@gmail.com')
+          .split(',')
+          .map((e: string) => e.trim().toLowerCase());
+        const isEmailAdmin = !!(data.email && adminList.includes(data.email.toLowerCase()));
 
         return {
           userId: data.userId,
@@ -59,7 +64,7 @@ export async function getAuthUser(req?: Request): Promise<AuthUser | null> {
           fullName: data.fullName || data.name || null,
           photo: data.photo || null,
           provider: data.provider || "google",
-          isAdmin: !!adminCheck,
+          isAdmin: isEmailAdmin || !!adminCheck,
         };
       }
     } catch (e) {
@@ -155,9 +160,9 @@ export async function createSession(
     statements.push(
       db
         .prepare(
-          "INSERT OR IGNORE INTO entries (id, kind, owner, subject, body, created) VALUES ('shop-admin', 'admin', ?, '', '{}', ?)"
+          "INSERT OR REPLACE INTO entries (id, kind, owner, subject, body, created) VALUES (?, 'admin', ?, '', '{}', ?)"
         )
-        .bind(user.userId, now)
+        .bind('admin:' + user.userId, user.userId, now)
     );
   }
 
