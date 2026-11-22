@@ -7,7 +7,7 @@ import { sites } from "./scripts/vite/sites-vite-plugin";
 import { connectorPreview } from "./scripts/vite/connector-preview-plugin.mjs";
 
 const SITE_CREATOR_PLACEHOLDER_DATABASE_ID =
-  "00000000-0000-4000-8000-000000000000";
+  "cad859ec-5435-4f84-b669-85b6802772e7";
 
 const { d1, r2 } = hostingConfig;
 
@@ -22,8 +22,8 @@ const localBindingConfig = {
     ? [
         {
           binding: d1,
-          database_name: "site-creator-d1",
-          database_id: SITE_CREATOR_PLACEHOLDER_DATABASE_ID,
+          database_name: "beaglehood-db",
+          database_id: "cad859ec-5435-4f84-b669-85b6802772e7",
         },
       ]
     : [],
