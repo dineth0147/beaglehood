@@ -71,7 +71,7 @@ export async function POST(req:Request){
  if(kind==='delete'){await db().prepare("DELETE FROM entries WHERE id=? AND kind='article'").bind(subject).run()}
  else{const title=String(b.title||'').trim().slice(0,140),body=String(b.text||'').trim().slice(0,22000);
  if(!title||!body)return fail('Add a title and article text.');const photo=String(b.photo||'/photos/journal.jpg');
- if(photo!=='/photos/journal.jpg'&&(!/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(photo)||photo.length>650000))return fail('Choose a smaller JPG, PNG or WebP image.');
+ if(photo!=='/photos/journal.jpg'&&(!/^data:image\/(jpeg|jpg|png|webp|gif|avif|svg\+xml);base64,[A-Za-z0-9+/=]+$/.test(photo)||photo.length>5800000))return fail('Choose an image (JPEG, PNG, WebP, GIF, AVIF, SVG) under 4 MB.');
  if(subject&&!await db().prepare("SELECT id FROM entries WHERE id=? AND kind='article'").bind(subject).first())return fail('Article unavailable.');
  await save(subject||id,kind,{title,body,photo,category:String(b.category||'Dog life').slice(0,60)})}}
  else return fail('Unknown action.');return response({ok:true})

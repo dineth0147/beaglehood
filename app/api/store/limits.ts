@@ -1,9 +1,9 @@
 import {env} from 'cloudflare:workers';
 
-const maxBytes=900_000;
+const maxBytes=5_500_000;
 export async function readInput(req:Request):Promise<Record<string,any>|Response>{
  const error=(status:number,error:string)=>Response.json({error},{status});
- if(Number(req.headers.get('content-length'))>maxBytes)return error(413,'Please use a smaller image.');
+ if(Number(req.headers.get('content-length'))>maxBytes)return error(413,'Image size exceeds 4 MB limit.');
  const reader=req.body?.getReader();if(!reader)return error(400,'Empty request.');
  const decoder=new TextDecoder();let size=0,source='';
  try{

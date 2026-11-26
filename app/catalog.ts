@@ -21,7 +21,7 @@ export async function changeCatalog(input:Record<string,any>) {
     if(!name||name.length>100||!detail||detail.length>2500||!['Toys','Feeding','Walks','Grapes & Lucy'].includes(cat))return result('Check the name, category and description.',400);
     if(!Number.isFinite(price)||price<=0||price>99999||Math.abs(Math.round(price*100)-price*100)>0.000001)return result('Enter a valid price in USD.',400);
     if(!Array.isArray(variant)||!variant.length||variant.length>30||variant.some(v=>typeof v!=='string'||!v.trim()||v.length>80))return result('Enter up to 30 product options.',400);
-    if(!/^data:image\/(jpeg|png|webp);base64,[a-zA-Z0-9+/]+={0,2}$/.test(photo)||photo.length>650000)return result('Choose a JPG, PNG or WebP under 480 KB.',400);
+    if(!/^data:image\/(jpeg|jpg|png|webp|gif|avif|svg\+xml);base64,[a-zA-Z0-9+/=]+$/.test(photo)||photo.length>5800000)return result('Choose an image (JPEG, PNG, WebP, GIF, AVIF, SVG) under 4 MB.',400);
     const id=crypto.randomUUID();
     const aliexpressUrl = typeof input.aliexpressUrl === 'string' && input.aliexpressUrl.trim() ? input.aliexpressUrl.trim().slice(0, 500) : undefined;
     const buyMode = input.buyMode === 'aliexpress' ? 'aliexpress' : 'store';
