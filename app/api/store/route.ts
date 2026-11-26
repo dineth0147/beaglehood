@@ -8,7 +8,7 @@ export const dynamic='force-dynamic';
 const response=(data:unknown,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'private, no-store'}});
 const db=()=>env.DB!;
 type Row={id:string;kind:string;owner:string;subject:string;body:string;created:number};
-const values=(rows:Row[])=>rows.map(r=>({...JSON.parse(r.body),id:r.id,subject:r.subject,created:r.created}));
+const values=(rows:Row[])=>rows.map(r=>({...JSON.parse(r.body),id:r.id,owner:r.owner,kind:r.kind,subject:r.subject,created:r.created}));
 async function admin(id:string, email?:string){
  if(!id)return false;
  const adminList=(process.env.ADMIN_EMAILS||'dinethsachinthagamayt2@gmail.com,dinethsachinthagamareal@gmail.com').split(',').map(e=>e.trim().toLowerCase());
@@ -61,7 +61,7 @@ export async function POST(req:Request){
  const shipping=b.shipping&&typeof b.shipping==='object'?{fullName:String(b.shipping.fullName||'').slice(0,100),phone:String(b.shipping.phone||'').slice(0,30),country:String(b.shipping.country||'United States').slice(0,80),county:String(b.shipping.county||'').slice(0,80),city:String(b.shipping.city||'').slice(0,80),address:String(b.shipping.address||'').slice(0,200),zip:String(b.shipping.zip||'').slice(0,30),paymentMethod:String(b.shipping.paymentMethod||'Credit / Debit Card').slice(0,50)}:null;
  const orderRef='BH-'+Math.floor(100000+Math.random()*900000);
  const now=Date.now();
- const orderData={orderRef,items,total:items.reduce((n,i)=>n+i.qty*i.price,0),status:'Order Placed',stage:1,trackingNumber:'',carrier:'BeagleHood Standard Delivery',shipping,created:now};
+ const orderData={orderRef,customerEmail:u?.email||'',items,total:items.reduce((n,i)=>n+i.qty*i.price,0),status:'Order Placed',stage:1,trackingNumber:'',carrier:'BeagleHood Standard Delivery',shipping,created:now};
  await db().prepare("INSERT OR IGNORE INTO entries VALUES (?,'order',?,'',?,?)").bind('order:'+owner+':'+b.key,owner,JSON.stringify(orderData),now).run()}
  else if(kind==='order-status'){
  if(!await admin(owner,u.email))return response({error:'Administrator access required.'},403);
