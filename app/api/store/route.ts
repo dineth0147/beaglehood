@@ -56,10 +56,26 @@ export async function POST(req:Request){
  else if(kind==='address'){await save('address:'+owner,kind,String(b.text||'').trim().slice(0,650))}
  else if(kind==='order'){
  if(!Array.isArray(b.items)||!b.items.length||b.items.length>60)return fail('Your bag is empty or too large.');
- const items=[];for(const row of b.items){const p=products.find(p=>p.id===row.id);if(!p||!p.variant.includes(row.variant)||!Number.isInteger(row.qty)||row.qty<1||row.qty>20)return fail('Check the items in your bag.');items.push({name:p.name,variant:row.variant,qty:row.qty,price:p.price,aliexpressUrl:p.aliexpressUrl||''})}
+ const items=[];for(const row of b.items){const p=products.find(p=>p.id===row.id);if(!p||!p.variant.includes(row.variant)||!Number.isInteger(row.qty)||row.qty<1||row.qty>20)return fail('Check the items in your bag.');items.push({name:p.name,variant:row.variant,qty:row.qty,price:p.price,photo:p.photo,aliexpressUrl:p.aliexpressUrl||''})}
  if(!/^[a-z0-9-]{36}$/.test(b.key))return fail('Reload checkout and try again.');
  const shipping=b.shipping&&typeof b.shipping==='object'?{fullName:String(b.shipping.fullName||'').slice(0,100),phone:String(b.shipping.phone||'').slice(0,30),country:String(b.shipping.country||'United States').slice(0,80),county:String(b.shipping.county||'').slice(0,80),city:String(b.shipping.city||'').slice(0,80),address:String(b.shipping.address||'').slice(0,200),zip:String(b.shipping.zip||'').slice(0,30),paymentMethod:String(b.shipping.paymentMethod||'Credit / Debit Card').slice(0,50)}:null;
- await db().prepare("INSERT OR IGNORE INTO entries VALUES (?,'order',?,'',?,?)").bind('order:'+owner+':'+b.key,owner,JSON.stringify({items,total:items.reduce((n,i)=>n+i.qty*i.price,0),status:'Confirmed',shipping}),Date.now()).run()}
+ const orderRef='BH-'+Math.floor(100000+Math.random()*900000);
+ const now=Date.now();
+ const orderData={orderRef,items,total:items.reduce((n,i)=>n+i.qty*i.price,0),status:'Order Placed',stage:1,trackingNumber:'',carrier:'BeagleHood Standard Delivery',shipping,created:now};
+ await db().prepare("INSERT OR IGNORE INTO entries VALUES (?,'order',?,'',?,?)").bind('order:'+owner+':'+b.key,owner,JSON.stringify(orderData),now).run()}
+ else if(kind==='order-status'){
+ if(!await admin(owner,u.email))return response({error:'Administrator access required.'},403);
+ const orderId=String(b.orderId||'');
+ const row=await db().prepare("SELECT body FROM entries WHERE id=? AND kind='order'").bind(orderId).first<{body:string}>();
+ if(!row)return fail('Order not found.');
+ const order=JSON.parse(row.body);
+ const status=String(b.status||order.status||'Order Placed');
+ const stage=Number(b.stage||(status==='Delivered'?4:status==='Dispatched'?3:status==='Processing'?2:1));
+ const trackingNumber=String(b.trackingNumber!==undefined?b.trackingNumber:(order.trackingNumber||'')).trim();
+ const carrier=String(b.carrier||order.carrier||'BeagleHood Standard Delivery').trim();
+ const updated={...order,status,stage,trackingNumber,carrier};
+ await db().prepare("UPDATE entries SET body=? WHERE id=? AND kind='order'").bind(JSON.stringify(updated),orderId).run();
+ return response({ok:true});}
  else if(kind==='review'||kind==='comment'){
  const p=products.find(p=>p.id===subject);if(kind==='review'&&(!p||!Number.isInteger(b.stars)||b.stars<1||b.stars>5))return fail('Choose a star rating.');
  if(kind==='comment'&&subject!==firstArticle.id&&!await db().prepare("SELECT id FROM entries WHERE id=? AND kind='article'").bind(subject).first())return fail('Article unavailable.');

@@ -76,6 +76,52 @@
 .aliDisclaimer{font-size:11px;color:#999;text-align:center;margin-top:10px;line-height:1.4}
 .aliProtectionCard{display:flex;gap:14px;background:#fff8f8;border:1px solid #ffd6d6;border-radius:12px;padding:16px}
 .aliProtectionCard b{color:#d41e24;display:block;margin-bottom:4px;font-size:13.5px}
+
+/* Order Tracking Card & Stepper */
+.orderCard{background:#ffffff;border:1px solid #e8e3da;border-radius:14px;padding:22px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+.orderCardTop{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;border-bottom:1px solid #f0ebe2;padding-bottom:14px;margin-bottom:18px}
+.orderRefTitle{font-size:16px;font-weight:700;color:#2b221a;margin:0 0 4px}
+.orderDate{font-size:12.5px;color:#786657}
+.orderBadge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.orderBadge.placed{background:#eef4ff;color:#2563eb;border:1px solid #bfdbfe}
+.orderBadge.processing{background:#fef9c3;color:#a16207;border:1px solid #fde047}
+.orderBadge.dispatched{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.orderBadge.delivered{background:#ecfdf5;color:#047857;border:1px solid #a7f3d0}
+
+/* 4-Step Progress Stepper */
+.orderStepper{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;position:relative;margin:22px 0 26px;text-align:center}
+.orderStepper::before{content:'';position:absolute;top:15px;left:12%;right:12%;height:3px;background:#e5ded3;z-index:1}
+.orderStepper.step-1::after{content:'';position:absolute;top:15px;left:12%;width:0;height:3px;background:#15803d;z-index:2}
+.orderStepper.step-2::after{content:'';position:absolute;top:15px;left:12%;width:25%;height:3px;background:#15803d;z-index:2}
+.orderStepper.step-3::after{content:'';position:absolute;top:15px;left:12%;width:50%;height:3px;background:#15803d;z-index:2}
+.orderStepper.step-4::after{content:'';position:absolute;top:15px;left:12%;right:12%;height:3px;background:#15803d;z-index:2}
+.orderStep{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center}
+.orderStepDot{width:32px;height:32px;border-radius:50%;background:#ffffff;border:3px solid #d5cbbe;display:grid;place-items:center;font-size:13px;font-weight:700;color:#857567;margin-bottom:8px;transition:all .2s}
+.orderStep.active .orderStepDot{border-color:#15803d;background:#15803d;color:#ffffff}
+.orderStep.current .orderStepDot{border-color:#15803d;background:#ffffff;color:#15803d;box-shadow:0 0 0 4px rgba(21,128,61,.15)}
+.orderStepLabel{font-size:12px;font-weight:600;color:#786657}
+.orderStep.active .orderStepLabel,.orderStep.current .orderStepLabel{color:#15803d;font-weight:700}
+
+/* Tracking box */
+.orderTrackingBox{background:#f9f6f0;border:1px solid #ebd8c3;border-radius:10px;padding:14px 18px;margin:16px 0;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.orderTrackingInfo{font-size:13px;color:#544133}
+.orderTrackingInfo b{color:#291e17}
+.orderTrackLink{display:inline-flex;align-items:center;gap:6px;background:#8b492a;color:#fff!important;padding:7px 14px;border-radius:6px;font-size:12.5px;font-weight:600}
+.orderTrackLink:hover{background:#6e3318!important}
+
+/* Order items list in card */
+.orderItemsThumb{display:grid;gap:10px;margin-top:14px}
+.orderItemMini{display:flex;align-items:center;gap:12px;font-size:13.5px}
+.orderItemMini img{width:46px;height:46px;border-radius:6px;object-fit:cover;border:1px solid #eee}
+.orderItemMini div{flex:1}
+.orderItemMini b{display:block;font-size:13.5px}
+.orderItemMini span{color:#796452;font-size:12px}
+
+/* Admin Status Update Form */
+.adminStatusRow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f5efe6;border:1px solid #e5dac9;border-radius:8px;padding:12px 14px;margin-top:10px}
+.adminStatusRow select,.adminStatusRow input{font-size:13px;padding:6px 10px}
+.adminStatusRow select{background:#fff}
+.adminStatusRow button{padding:7px 14px;font-size:12.5px}
 .aliProtectionCard p{font-size:12px;color:#666;margin:0 0 6px}
 .aliProtectionCard ul{margin:0;padding-left:0;list-style:none;font-size:12px;color:#555}
 .aliProtectionCard li{margin-bottom:2px}
